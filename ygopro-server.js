@@ -2010,7 +2010,7 @@
     client.server = server;
     server.client = client;
     client.setTimeout(2000); //连接前超时2秒
-    
+
     // 释放处理
     client.on('close', function(had_error) {
       var room;
@@ -2264,7 +2264,7 @@
     server.on('data', function(data) {
       var b, buffer, cancel, datas, info, len2, len3, len4, m, n, o, ref2, ref3, result, stoc_event, struct;
       server.cached_buffer = Buffer.concat([server.cached_buffer, data], server.cached_buffer.length + data.length); //buffer的错误使用方式，好孩子不要学
-      
+
       //unless ygopro.stoc_follows[server.stoc_proto] and ygopro.stoc_follows[server.stoc_proto].synchronous
       //server.client.write data
       datas = [];
@@ -2428,57 +2428,66 @@
       });
       CLIENT_kick(client);
     } else if (ROOM_connected_ip[client.ip] > 5) {
-      log.warn("MULTI LOGIN", client.name, client.ip);
+      log.warn("MULTI LOGIN", client.name, client.ip, info.notes);
+      botServer.chatWarning("Multiple connections", client.name, client.ip, info.notes);
       ygopro.stoc_die(client, "${too_much_connection}" + client.ip);
     } else if (_.indexOf(settings.ban.banned_user, client.name) > -1) { //账号被封
       settings.ban.banned_ip.push(client.ip);
       setting_save(settings);
-      log.warn("BANNED USER LOGIN", client.name, client.ip);
+      log.warn("BANNED USER LOGIN", client.name, client.ip, info.notes);
+      botServer.chatWarning("Automatically banned nickname", client.name, client.ip, info.notes);
       ygopro.stoc_die(client, "${banned_user_login}");
     } else if (_.indexOf(settings.ban.banned_ip, client.ip) > -1) { //IP被封
-      log.warn("BANNED IP LOGIN", client.name, client.ip);
+      log.warn("BANNED IP LOGIN", client.name, client.ip, info.notes);
+      botServer.chatWarning("Automatically banned IP", client.name, client.ip, info.notes);
       ygopro.stoc_die(client, "${banned_ip_login}");
     } else if (_.any(badwords.level3, function(badword) {
       var regexp;
       regexp = new RegExp(badword, 'i');
       return name.match(regexp);
     }, name = client.name)) {
-      log.warn("BAD NAME LEVEL 3", client.name, client.ip);
+      log.warn("BAD NAME LEVEL 3", client.name, client.ip, info.notes);
+      botServer.chatWarning("Level 3 nickname", client.name, client.ip, info.notes);
       ygopro.stoc_die(client, "${bad_name_level3}");
     } else if (_.any(badwords.level2, function(badword) {
       var regexp;
       regexp = new RegExp(badword, 'i');
       return name.match(regexp);
     }, name = client.name)) {
-      log.warn("BAD NAME LEVEL 2", client.name, client.ip);
+      log.warn("BAD NAME LEVEL 2", client.name, client.ip, info.notes);
+      botServer.chatWarning("Level 2 nickname", client.name, client.ip, info.notes);
       ygopro.stoc_die(client, "${bad_name_level2}");
     } else if (_.any(badwords.level1, function(badword) {
       var regexp;
       regexp = new RegExp(badword, 'i');
       return name.match(regexp);
     }, name = client.name)) {
-      log.warn("BAD NAME LEVEL 1", client.name, client.ip);
+      log.warn("BAD NAME LEVEL 1", client.name, client.ip, info.notes);
+      botServer.chatWarning("Level 2 nickname", client.name, client.ip, info.notes);
       ygopro.stoc_die(client, "${bad_name_level1}");
     } else if (_.any(badwords.level3, function(badword) {
       var regexp;
       regexp = new RegExp(badword, 'i');
       return name.match(regexp);
     }, name = info.notes)) {
-      log.warn("BAD NOTES LEVEL 3", client.name, client.ip);
+      log.warn("BAD NOTES LEVEL 3", client.name, client.ip, info.notes);
+      botServer.chatWarning("Level 3 room notes", client.name, client.ip, info.notes);
       ygopro.stoc_die(client, "${bad_notes_level3}");
     } else if (_.any(badwords.level2, function(badword) {
       var regexp;
       regexp = new RegExp(badword, 'i');
       return name.match(regexp);
     }, name = info.notes)) {
-      log.warn("BAD NOTES LEVEL 2", client.name, client.ip);
+      log.warn("BAD NOTES LEVEL 2", client.name, client.ip, info.notes);
+      botServer.chatWarning("Level 2 room notes", client.name, client.ip, info.notes);
       ygopro.stoc_die(client, "${bad_notes_level2}");
     } else if (_.any(badwords.level1, function(badword) {
       var regexp;
       regexp = new RegExp(badword, 'i');
       return name.match(regexp);
     }, name = info.notes)) {
-      log.warn("BAD NOTES LEVEL 1", client.name, client.ip);
+      log.warn("BAD NOTES LEVEL 1", client.name, client.ip, info.notes);
+      botServer.chatWarning("Level 1 room notes", client.name, client.ip, info.notes);
       ygopro.stoc_die(client, "${bad_notes_level1}");
     } else {
       room = new Room(info);

@@ -1,19 +1,55 @@
 var Discord = require('discord.js');
 var fs = require('fs');
 
-var controlersids = fs.readFileSync('controlers.txt', 'utf8');
-var controlers = controlersids.split("\n");
-for (let i = controlers.length; i > -1; i--) {
-	if (controlers[i] === "") {
-		controlers.splice(i, 1);
+function getLines(file) {
+	const raw = fs.readFileSync(file, "utf8");
+	const list = raw.split("\n");
+	for (let i = list.length; i > -1; i--) {
+		if (list[i] === "") {
+			list.splice(i, 1);
+		}
+	}
+	return list;
+}
+
+async function save(file, list) {
+	const buffer = list.reduce((str, value) => `${str}${value}\n`, "");
+	try {
+		await fs.promises.writeFile(file, buffer);
+	} catch(e) {
+		console.error(`Couldn't save ${file}\n`, e);
 	}
 }
 
-var channelids = fs.readFileSync('channels.txt', 'utf8');
-var channels = channelids.split("\n");
-for (let i = channels.length; i > -1; i--) {
-	if (channels[i] === "") {
-		channels.splice(i, 1);
+function useSerializer(file) {
+	const list = getLines(file);
+	return [list, () => save(file, list)];
+}
+
+const [controlers, savechannels] = useSerializer("controlers.txt");
+const [channels, savecontrolers] = useSerializer("channels.txt");
+const [chatWarningChannels, saveChatWarn] = useSerializer("chatWarningChannels.txt");
+
+function addChannel(type, message, list, callback) {
+	if (list.includes(message.channel.id)) {
+		message.channel.send("Already working in this channel!");
+	} else {
+		console.log(`Starting ${type} in ${message.channel.id}`);
+		list.push(message.channel.id);
+		callback();
+		message.channel.send(`Starting ${type} in this channel.`)
+	}
+}
+
+function removeChannel(type, message, list, callback) {
+	const i = list.findIndex(i => i === message.channel.id);
+	if (i === -1) {
+		message.channel.send(`This channel wasn't used for ${type}!`);
+	} else {
+		list.splice(i, 1);
+		console.log(`Ending ${type} in ${message.channel.id}`);
+		callback();
+		message.channel.send(`Ending ${type} in this channel`);
 	}
 }
 
@@ -75,42 +111,21 @@ bot.on('message', function (message) {
 		}
 	}
 	if (message.content === ".addlogging") {
-		let chk = true;
-		for (let i = 0; i < channels.length; i++) {
-			if (channels[i] === message.channel.id) {
-				chk = false;
-				break;
-			}
-		}
-		if (chk) {
-			console.log('adding ' + message.channel.id + ' as a valid channel');
-			channels.push(message.channel.id);
-			message.channel.send("logging enabled in this channel");
-			savechannels();
-		} else {
-			message.channel.send("channel is already used for logging");
-		}
+		addChannel("logging", message, channels, savechannels);
 	}
 	if (message.content === ".removelogging") {
-		let chk = false;
-		for (let i = channels.length; i > -1; i--) {
-			if (channels[i] === message.channel.id) {
-				chk = true;
-				channels.splice(i, 1);
-			}
-		}
-		if (chk) {
-			console.log(message.channel.id + ' removed from logging channels');
-			message.channel.send("logging disabled in this channel");
-			savechannels();
-		} else {
-			message.channel.send("this channel wasn't used for logging");
-		}
+		removeChannel("logging", message, channels, savechannels);
 	}
-	if (message.content === ".restartai") {
+	if (message.content === ".addchatwarn") {
+		addChannel("chat warnings", message, chatWarningChannels, saveChatWarn);
+	}
+	if (message.content === ".removechatwarn") {
+		removeChannel("chat warnings", message, chatWarningChannels, saveChatWarn);
+	}
+	//if (message.content === ".restartai") {
 		//server.restartAI();
-		message.channel.send("ai restart not reimplemented yet");
-	}
+		//message.channel.send("ai restart not reimplemented yet");
+	//}
 });
 
 function write(output) {
@@ -176,28 +191,22 @@ async function uploadreplay(room, code, signal) {
 	fs.promises.unlink(`./ygopro/replay/${room.game_id}.answ`).catch(() => { });
 }
 
-function savechannels() {
-	let buffer = "";
-	for (let i = 0; i < channels.length; i++) {
-		buffer = buffer + channels[i] + "\n";
+async function chatWarning(message, name, ip, roomNotes) {
+	const fields = [
+		{ name: "Nickname", value: name, inline: true },
+		{ name: "IP", value: ip, inline: true }
+	];
+	if (roomNotes) {
+		fields.push({ name: "Room notes", value: roomNotes });
 	}
-	fs.writeFile('channels.txt', buffer, function (err) {
-		if (err) {
-			console.log("couldn't save channel list\n" + err);
-		}
-	});
-}
-
-function savecontrolers() {
-	let buffer = "";
-	for (let i = 0; i < controlers.length; i++) {
-		buffer = buffer + controlers[i] + "\n";
-	}
-	fs.writeFile('controlers.txt', buffer, function (err) {
-		if (err) {
-			console.log("couldn't save controlers list\n" + err);
-		}
-	});
+	await Promise.allSettled(
+		chatWarningChannels.map(channel => bot.channels.get(channel).send({
+			embed: {
+				title: `Infraction: ${message}`,
+				fields
+			}
+		}))
+	);
 }
 
 module.exports = {
@@ -207,4 +216,5 @@ module.exports = {
 	write: write,
 	write2: write2,
 	uploadreplay: uploadreplay,
+	chatWarning: chatWarning
 };
