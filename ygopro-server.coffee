@@ -1850,7 +1850,7 @@ ygopro.ctos_follow 'CREATE_GAME', false, (buffer, info, client, server, datas)->
     return name.match(regexp)
   , name = client.name)
     log.warn("BAD NAME LEVEL 1", client.name, client.ip, info.notes)
-    botServer.chatWarning("Level 1 nickname", client.name, client.ip, info.notes)
+    # intentionally not logging to Discord
     ygopro.stoc_die(client, "${bad_name_level1}")
 
   else if _.any(badwords.level3, (badword) ->
