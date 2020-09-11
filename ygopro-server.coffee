@@ -1908,16 +1908,19 @@ ygopro.ctos_follow 'JOIN_GAME', false, (buffer, info, client, server, datas)->
 
   else if ROOM_connected_ip[client.ip] > 5
     log.warn("MULTI LOGIN", client.name, client.ip)
+    botServer.chatWarning("Multiple connections (joining)", client.name, client.ip)
     ygopro.stoc_die(client, "${too_much_connection}" + client.ip)
 
   else if _.indexOf(settings.ban.banned_user, client.name) > -1 #账号被封
     settings.ban.banned_ip.push(client.ip)
     setting_save(settings)
     log.warn("BANNED USER LOGIN", client.name, client.ip)
+    botServer.chatWarning("Automatically banned nickname (joining)", client.name, client.ip)
     ygopro.stoc_die(client, "${banned_user_login}")
 
   else if _.indexOf(settings.ban.banned_ip, client.ip) > -1 #IP被封
     log.warn("BANNED IP LOGIN", client.name, client.ip)
+    botServer.chatWarning("Automatically banned IP (joining)", client.name, client.ip)
     ygopro.stoc_die(client, "${banned_ip_login}")
 
   else if _.any(badwords.level3, (badword) ->
@@ -1925,6 +1928,7 @@ ygopro.ctos_follow 'JOIN_GAME', false, (buffer, info, client, server, datas)->
     return name.match(regexp)
   , name = client.name)
     log.warn("BAD NAME LEVEL 3", client.name, client.ip)
+    botServer.chatWarning("Level 3 nickname (joining)", client.name, client.ip)
     ygopro.stoc_die(client, "${bad_name_level3}")
 
   else if _.any(badwords.level2, (badword) ->
@@ -1932,6 +1936,7 @@ ygopro.ctos_follow 'JOIN_GAME', false, (buffer, info, client, server, datas)->
     return name.match(regexp)
   , name = client.name)
     log.warn("BAD NAME LEVEL 2", client.name, client.ip)
+    botServer.chatWarning("Level 2 nickname (joining)", client.name, client.ip)
     ygopro.stoc_die(client, "${bad_name_level2}")
 
   else if _.any(badwords.level1, (badword) ->
@@ -1939,6 +1944,7 @@ ygopro.ctos_follow 'JOIN_GAME', false, (buffer, info, client, server, datas)->
     return name.match(regexp)
   , name = client.name)
     log.warn("BAD NAME LEVEL 1", client.name, client.ip)
+    # intentionally not logging to Discord
     ygopro.stoc_die(client, "${bad_name_level1}")
 
   #else if info.pass.length && !ROOM_validate(info.pass)
