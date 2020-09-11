@@ -3176,7 +3176,7 @@ if settings.modules.http
           roomname: room.name,
           roomnotes: room.notes,
           roommode: room.hostinfo.mode,
-          needpass: !!room.pass,
+          needpass: if pass_validated then room.pass else !!room.pass,
           team1: room.hostinfo.team1,
           team2: room.hostinfo.team2,
           best_of: room.hostinfo.best_of,
@@ -3192,7 +3192,7 @@ if settings.modules.http
           no_shuffle : room.hostinfo.no_shuffle_deck,
           banlist_hash: room.hostinfo.lflist,
           users: _.sortBy((for player in room.players when player.pos?
-            id: (-1).toString(),
+            # id: (-1).toString(),
             name: player.name,
             ip: if settings.modules.http.show_ip and pass_validated and !player.is_local then player.ip.slice(7) else null,
             status: if settings.modules.http.show_info and room.duel_stage != ygopro.constants.DUEL_STAGE.BEGIN and player.pos != 7 then (

@@ -3990,7 +3990,7 @@
                     roomname: room.name,
                     roomnotes: room.notes,
                     roommode: room.hostinfo.mode,
-                    needpass: !!room.pass,
+                    needpass: pass_validated ? room.pass : !!room.pass,
                     team1: room.hostinfo.team1,
                     team2: room.hostinfo.team2,
                     best_of: room.hostinfo.best_of,
@@ -4013,7 +4013,7 @@
                         player = ref2[n];
                         if (player.pos != null) {
                           results1.push({
-                            id: (-1).toString(),
+                            // id: (-1).toString(),
                             name: player.name,
                             ip: settings.modules.http.show_ip && pass_validated && !player.is_local ? player.ip.slice(7) : null,
                             status: settings.modules.http.show_info && room.duel_stage !== ygopro.constants.DUEL_STAGE.BEGIN && player.pos !== 7 ? {
